@@ -1,6 +1,6 @@
 # PyExp
 
-    sudo nmap -p -sV 192.168.204.118
+    sudo nmap -p- -sV 192.168.204.118
     sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.204.118 --tun0
     sudo /home/timothe/.local/bin/autorecon 192.168.204.118
 Scans classiques.
