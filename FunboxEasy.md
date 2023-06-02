@@ -1,7 +1,7 @@
 # FunboxEasy
 
     sudo nmap -A -p1-10000 192.168.249.111
-    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.249.111 --tun0
+    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.249.111 -e tun0
     sudo /home/timothe/.local/bin/autorecon 192.168.249.111
     feroxbuster -u http://192.168.249.111
 
