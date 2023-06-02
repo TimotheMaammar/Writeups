@@ -1,7 +1,7 @@
 # Squid
 
     sudo nmap -p- -sV -T5 192.168.205.189
-    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.205.189 --tun0
+    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.205.189 -e tun0
     sudo /home/timothe/.local/bin/autorecon 192.168.205.189
 Scans classiques.    
  
