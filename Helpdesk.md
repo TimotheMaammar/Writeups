@@ -1,7 +1,7 @@
 # Helpdesk
 
     sudo nmap -p- -sV -T5 192.168.205.43
-    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.205.43 --tun0
+    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.205.43 -e tun0
     sudo /home/timothe/.local/bin/autorecon 192.168.205.43
 Scans classiques.    
 
