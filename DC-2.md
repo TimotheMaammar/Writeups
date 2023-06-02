@@ -3,7 +3,7 @@
     echo "192.168.249.194 dc-2" >> /etc/hosts
 
     sudo nmap -A -p1-10000 192.168.249.194
-    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.249.194 --tun0
+    sudo masscan -p1-65535,U:1-65535 --rate=1000 192.168.249.194 -e tun0
     sudo /home/timothe/.local/bin/autorecon 192.168.249.194
     wpscan --url http://dc-2 --enumerate
 
