@@ -1,6 +1,6 @@
 # Medjed
 
-	sudo  masscan  -p1-65535,U:1-65535 192.168.174.127 -e tun0 > ports.txt
+	sudo masscan -p1-65535,U:1-65535 192.168.174.127 -e tun0 > ports.txt
 	sudo nmap -p- -sV -T4 192.168.174.127 -oN nmap.txt
 	feroxbuster --silent -u http://192.168.174.127:8000/
 	
