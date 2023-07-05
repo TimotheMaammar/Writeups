@@ -24,12 +24,12 @@ En revanche j'ai trouvé des informations sur le port 5601 :
 	nc 192.168.164.54 5601  
 	GET / 
 >	HTTP/1.1 302 Found   	
-	location: /app/kibana   	
-	kbn-name: kibana 
-	kbn-xpack-sig: 79b8a7336823018e37a1e121a9f3bb67  
+	</br>location: /app/kibana   	
+	</br>kbn-name: kibana 
+	</br>kbn-xpack-sig: 79b8a7336823018e37a1e121a9f3bb67  
 	cache-control: no-cache
-	content-length: 0
-	connection: close  
+	</br>content-length: 0
+	</br>connection: close  
 	Date: Wed, 05 Jul 2023 09:11:42 GMT
 
 Et sur mon navigateur le port 5601 redirige vers http://192.168.164.54:5601/app/kibana#/home?_g=()
