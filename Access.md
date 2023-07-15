@@ -29,7 +29,7 @@ Scans classiques.
 
 
 http://192.168.158.187/Forms/contact.php => 'Unable to load the "PHP Email Form" Library!'
-http://192.168.158.187/Uploads => Vide
+</br>http://192.168.158.187/Uploads => Vide
 
 En essayant d'acheter un ticket on voit qu'il y a la possibilité d'uploader des images. J'ai vérifié avec une image classique et à la fin de l'opération elle se retrouve bien dans le dossier découvert plus haut. J'ai tenté d'envoyer un reverse-shell en PHP mais un filtre m'a rejeté. J'ai directement tenté plusieurs techniques (null byte, double extension, aucune extension) qui ont fonctionné, mais le site semble ne pas interpréter les fichiers PHP sur la page des uploads.
 
