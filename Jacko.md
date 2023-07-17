@@ -56,7 +56,9 @@ Les shells continuaient à se fermer directement et j'ai dû passer par Metasplo
 	C:\Users\tony\Desktop>type local.txt  
 
 
-Élévation de privilèges utilisant un CVE ; les deux seules difficultés sont la variable PATH mal configurée et le programme Powershell qui semble situé à un autre endroit. Il faut donc au préalable redonner la bonne valeur au PATH puis chercher Powershell manuellement : 
+### Élévation de privilèges utilisant un CVE : 
+
+Les deux seules difficultés sont la variable PATH mal configurée et le programme Powershell qui semble situé à un autre endroit. Il faut donc au préalable redonner la bonne valeur au PATH puis chercher Powershell manuellement : 
 
 	cd C:\
 	set PATH=%SystemRoot%\system32;%SystemRoot%;
