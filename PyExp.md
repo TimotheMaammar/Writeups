@@ -31,7 +31,7 @@ On essaye les credentials obtenus sur le SSH et cela fonctionne :
     ssh  -l lucy 192.168.204.118 -p 1337
     cat local.txt
 
-Élévation de privilèges : 
+### Élévation de privilèges : 
 
     sudo -l		
 > (root) NOPASSWD: /usr/bin/python2 /opt/exp.py
