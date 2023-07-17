@@ -42,7 +42,9 @@ Le seul que l'on peut utiliser pour l'instant est l'exploit de type Directory Tr
 	...
 	type C:\Users\Viewer\Desktop\local.txt
 
-Élévation de privilèges reprenant l'exploit /50130 trouvé plus haut. Attention à bien prendre le mot de passe chiffré de l'administrateur et non pas celui de Viewer. Il faut prendre celui que l'on trouve en premier après la ligne "LoginName0=Administrator" et le remplacer dans l'exploit.
+### Élévation de privilèges :
+
+On reprend l'exploit /50130 trouvé plus haut. Attention à bien prendre le mot de passe chiffré de l'administrateur et non pas celui de Viewer. Il faut prendre celui que l'on trouve en premier après la ligne "LoginName0=Administrator" et le remplacer dans l'exploit.
 
 	python exploit_Argus_DVR_50130.py
 
