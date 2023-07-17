@@ -56,7 +56,9 @@ Cela fonctionne et on obtient le mot de passe.
 
 Le flag utilisateur se trouve directement dans le dossier où on atterrit.
 
-Pour l'élévation de privilèges, les simples vérifications habituelles suffisent :
+### Élévation de privilèges :
+
+Les simples vérifications habituelles suffisent :
 
     sudo -l 
     find / -perm /4000 2>/dev/null
