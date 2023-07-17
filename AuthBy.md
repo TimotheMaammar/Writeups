@@ -61,7 +61,7 @@ Après être retourné sur le FTP avec le deuxième compte, j'ai vu que l'on pou
 	type C:\Users\apache\Desktop\local.txt
 
 
-Élévation de privilèges : 
+### Élévation de privilèges : 
 
 	whoami /priv
 
