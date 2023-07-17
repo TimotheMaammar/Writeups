@@ -40,7 +40,7 @@ On voit le mot de passe pour le SSH, le mot de passe pour http://192.168.249.111
 
 À noter que le mot de passe pour /store correspondait bien au mot de passe que j'avais trouvé dans le fichier http://192.168.249.111/store/database/www_project.sql en récupérant le hash puis en le crackant avec Hashcat. Il y avait sûrement énormément de manières différentes de terminer cette VM.
 
-L'élévation de privilèges est triviale :
+### Élévation de privilèges :
 
     ssh  -l tony 192.168.249.111
     sudo -l
