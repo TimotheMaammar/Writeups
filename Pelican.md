@@ -34,7 +34,7 @@ Attendre une minute pour que la connexion arrive.
 	cd ~
 	cat local.txt
 
-Élévation de privilèges : 
+### Élévation de privilèges : 
 
 	python -c 'import pty ; pty.spawn("/bin/bash")'
 	find / -perm /4000 2>/dev/null
