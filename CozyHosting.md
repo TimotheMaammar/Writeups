@@ -4,7 +4,7 @@
 	sudo masscan -p1-65535,U:1-65535 10.10.11.230 -e tun0 > ports.txt
 	sudo nmap -p- -sV -T4 10.10.11.230 -oN nmap.txt
 	feroxbuster --silent -u http://cozyhosting.htb
-	dirb 
+	dirb http://cozyhosting.htb
 	
 Scans classiques.
 
